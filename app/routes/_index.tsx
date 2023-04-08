@@ -1,25 +1,34 @@
 import type { V2_MetaFunction } from "@remix-run/node";
-import { createStyles, Button } from "@mantine/core";
+import { createStyles } from "@mantine/core";
+import Header from "~/components/Header";
+import Hero from "~/components/Hero";
+import Footer from "~/components/Footer";
 
 export const meta: V2_MetaFunction = () => {
-  return [{ title: "Reactively" }];
+  return [
+    {
+      title: "Reactively",
+    },
+  ];
 };
 
-const useStyles = createStyles((theme) => ({
-  wrapper: {
-    display: "flex",
-    height: "100px",
-    backgroundColor: theme.colors.blue[5],
-    color: theme.white,
+const useStyles = createStyles(() => ({
+  layout: {
+    display: "grid",
+    gridTemplateRows: "auto 1fr auto",
+    minHeight: "100vh",
   },
 }));
 
 export default function Index() {
   const { classes } = useStyles();
   return (
-    <main className={classes.wrapper}>
-      <h1>Reactively ✨</h1>
-      <Button c="dimmed">Click me</Button>
-    </main>
+    <div className={classes.layout}>
+      <Header />
+      <main>
+        <Hero />
+      </main>
+      <Footer />
+    </div>
   );
 }
