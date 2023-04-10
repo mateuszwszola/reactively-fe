@@ -91,7 +91,7 @@ export default function Header() {
             <Link to="/" className={classes.link}>
               Home
             </Link>
-            <Link to="/explore" className={classes.link}>
+            <Link to="/posts" className={classes.link}>
               Explore
             </Link>
           </Group>
@@ -131,7 +131,7 @@ export default function Header() {
           <Link to="/" className={classes.link}>
             Home
           </Link>
-          <Link to="/explore" className={classes.link}>
+          <Link to="/posts" className={classes.link}>
             Explore
           </Link>
 
