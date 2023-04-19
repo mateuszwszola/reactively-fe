@@ -54,7 +54,11 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export default function Header() {
+interface HeaderProps {
+  isAuthenticated?: boolean;
+}
+
+export default function Header({ isAuthenticated = false }: HeaderProps) {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const { classes, theme } = useStyles();
@@ -96,14 +100,16 @@ export default function Header() {
             </Link>
           </Group>
 
-          <Group className={classes.hiddenMobile}>
-            <Button variant="default" component={Link} to="/login">
-              Log in
-            </Button>
-            <Button component={Link} to="/signup">
-              Sign up
-            </Button>
-          </Group>
+          {!isAuthenticated && (
+            <Group className={classes.hiddenMobile}>
+              <Button variant="default" component={Link} to="/login">
+                Log in
+              </Button>
+              <Button component={Link} to="/signup">
+                Sign up
+              </Button>
+            </Group>
+          )}
 
           <Burger
             opened={drawerOpened}
