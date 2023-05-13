@@ -31,4 +31,8 @@ export const useStyles = createStyles((theme) => ({
     alignItems: "center",
     gap: 4,
   },
+
+  errorMessage: {
+    color: theme.colors.red[5],
+  },
 }));

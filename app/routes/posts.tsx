@@ -1,8 +1,10 @@
-import type { V2_MetaFunction } from "@remix-run/node";
+import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { createStyles } from "@mantine/core";
 import Header from "~/components/Header";
 import Footer from "~/components/Footer";
-import { Outlet } from "@remix-run/react";
+import { Outlet, useLoaderData } from "@remix-run/react";
+import { json } from "@remix-run/node";
+import { getSession } from "~/sessions";
 
 export const meta: V2_MetaFunction = () => {
   return [
@@ -11,6 +13,16 @@ export const meta: V2_MetaFunction = () => {
     },
   ];
 };
+
+export async function loader({ request }: LoaderArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+
+  const accessToken = session.get("accessToken");
+
+  return json({
+    isAuthenticated: Boolean(accessToken),
+  });
+}
 
 const useStyles = createStyles((theme) => ({
   layout: {
@@ -30,10 +42,11 @@ const useStyles = createStyles((theme) => ({
 
 export default function Index() {
   const { classes } = useStyles();
+  const { isAuthenticated } = useLoaderData<typeof loader>();
 
   return (
     <div className={classes.layout}>
-      <Header />
+      <Header isAuthenticated={isAuthenticated} />
       <main className={classes.main}>
         <Outlet />
       </main>

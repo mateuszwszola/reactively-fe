@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconLemon } from "@tabler/icons-react";
-import { Link } from "@remix-run/react";
+import { Form, Link } from "@remix-run/react";
 
 const useStyles = createStyles((theme) => ({
   link: {
@@ -54,7 +54,11 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export default function Header() {
+interface HeaderProps {
+  isAuthenticated?: boolean;
+}
+
+export default function Header({ isAuthenticated = false }: HeaderProps) {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const { classes, theme } = useStyles();
@@ -83,27 +87,22 @@ export default function Header() {
             </Box>
           </Box>
 
-          <Group
-            sx={{ height: "100%" }}
-            spacing={0}
-            className={classes.hiddenMobile}
-          >
-            <Link to="/" className={classes.link}>
-              Home
-            </Link>
-            <Link to="/posts" className={classes.link}>
-              Explore
-            </Link>
-          </Group>
-
-          <Group className={classes.hiddenMobile}>
-            <Button variant="default" component={Link} to="/login">
-              Log in
-            </Button>
-            <Button component={Link} to="/signup">
-              Sign up
-            </Button>
-          </Group>
+          {!isAuthenticated ? (
+            <Group className={classes.hiddenMobile}>
+              <Button variant="default" component={Link} to="/login">
+                Log in
+              </Button>
+              <Button component={Link} to="/signup">
+                Sign up
+              </Button>
+            </Group>
+          ) : (
+            <Form method="post" action="/logout">
+              <Button type="submit" variant="default">
+                Log out
+              </Button>
+            </Form>
+          )}
 
           <Burger
             opened={drawerOpened}
