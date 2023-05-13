@@ -13,6 +13,15 @@ export type ResponseBody<DataType = unknown> = {
   errors: ApiError[] | null;
 };
 
+export interface AccessTokenPayload {
+  username: string;
+  sub: number;
+  id_user: number;
+  email: string;
+  iat: number;
+  exp: number;
+}
+
 // Mocks
 export interface Author {
   id: string;

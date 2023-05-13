@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconLemon } from "@tabler/icons-react";
-import { Link } from "@remix-run/react";
+import { Form, Link } from "@remix-run/react";
 
 const useStyles = createStyles((theme) => ({
   link: {
@@ -87,20 +87,7 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
             </Box>
           </Box>
 
-          <Group
-            sx={{ height: "100%" }}
-            spacing={0}
-            className={classes.hiddenMobile}
-          >
-            <Link to="/" className={classes.link}>
-              Home
-            </Link>
-            <Link to="/posts" className={classes.link}>
-              Explore
-            </Link>
-          </Group>
-
-          {!isAuthenticated && (
+          {!isAuthenticated ? (
             <Group className={classes.hiddenMobile}>
               <Button variant="default" component={Link} to="/login">
                 Log in
@@ -109,6 +96,12 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
                 Sign up
               </Button>
             </Group>
+          ) : (
+            <Form method="post" action="/logout">
+              <Button type="submit" variant="default">
+                Log out
+              </Button>
+            </Form>
           )}
 
           <Burger

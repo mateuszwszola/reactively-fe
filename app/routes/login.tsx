@@ -16,6 +16,7 @@ import { json, redirect } from "@remix-run/node";
 import type { ResponseBody } from "~/api";
 import { API_URL } from "~/api";
 import { commitSession, getSession } from "~/sessions";
+import { decodeToken } from "~/token.server";
 
 export const meta: V2_MetaFunction = () => {
   return [
@@ -90,7 +91,18 @@ export async function action({ request }: ActionArgs) {
 
   const accessToken = body.data?.[0]?.access_token;
 
+  // Decode accessToken
+  const accessTokenPayload = decodeToken(accessToken);
+
   session.set("accessToken", accessToken);
+
+  if (
+    accessTokenPayload &&
+    typeof accessTokenPayload === "object" &&
+    "id_user" in accessTokenPayload
+  ) {
+    session.set("userId", accessTokenPayload.id_user);
+  }
 
   return redirect("/", {
     headers: {
