@@ -24,14 +24,6 @@ export const meta: V2_MetaFunction = () => {
   ];
 };
 
-export async function loader() {
-  // TODO: Redirect if user is authenticated
-
-  return json({
-    message: "Hello",
-  });
-}
-
 export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
 

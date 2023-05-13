@@ -9,7 +9,7 @@ import {
   Title,
 } from "@mantine/core";
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import type { V2_MetaFunction, ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { V2_MetaFunction, ActionArgs } from "@remix-run/node";
 import { useStyles } from "~/components/Auth";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { json, redirect } from "@remix-run/node";
@@ -25,16 +25,6 @@ export const meta: V2_MetaFunction = () => {
     },
   ];
 };
-
-export async function loader({ request }: LoaderArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
-
-  if (session.has("accessToken")) {
-    return redirect("/");
-  }
-
-  return null;
-}
 
 export async function action({ request }: ActionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
