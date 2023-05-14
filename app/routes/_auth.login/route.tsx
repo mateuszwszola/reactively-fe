@@ -13,8 +13,8 @@ import type { V2_MetaFunction, ActionArgs } from "@remix-run/node";
 import { useStyles } from "~/components/Auth";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { json, redirect } from "@remix-run/node";
-import type { ResponseBody } from "~/api";
-import { API_URL } from "~/api";
+import type { ResponseBody } from "~/types/api";
+import { API_URL } from "~/types/api";
 import { commitSession, getSession } from "~/sessions";
 import { decodeToken } from "~/token.server";
 

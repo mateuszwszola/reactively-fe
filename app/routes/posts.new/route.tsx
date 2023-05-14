@@ -3,7 +3,7 @@ import { Form } from "@remix-run/react";
 import type { ActionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { getSession } from "~/sessions";
-import { API_URL } from "~/api";
+import { API_URL } from "~/types/api";
 
 export async function action({ request }: ActionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -20,7 +20,6 @@ export async function action({ request }: ActionArgs) {
   const title = formData.get("title");
   const content = formData.get("content");
 
-  // TODO: Handle errors
   const apiResponse = await fetch(API_URL + "/post", {
     method: "POST",
     body: JSON.stringify({
@@ -34,6 +33,12 @@ export async function action({ request }: ActionArgs) {
       Authorization: `Bearer ${accessToken}`,
     },
   });
+
+  if (!apiResponse.ok) {
+    throw new Response(null, {
+      status: apiResponse.status || 500,
+    });
+  }
 
   return redirect("/posts");
 }

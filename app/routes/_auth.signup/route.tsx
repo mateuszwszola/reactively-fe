@@ -13,8 +13,8 @@ import type { ActionArgs, V2_MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { useStyles } from "~/components/Auth";
 import { IconArrowLeft } from "@tabler/icons-react";
-import type { ResponseBody } from "~/api";
-import { API_URL } from "~/api";
+import type { ResponseBody } from "~/types/api";
+import { API_URL } from "~/types/api";
 
 export const meta: V2_MetaFunction = () => {
   return [

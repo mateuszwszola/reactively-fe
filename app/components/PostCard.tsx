@@ -1,16 +1,15 @@
 import {
-  createStyles,
-  Card,
-  Image,
-  ActionIcon,
-  Group,
-  Text,
   Avatar,
   Badge,
+  Card,
+  createStyles,
+  Group,
+  Image,
   rem,
+  Text,
 } from "@mantine/core";
-import { IconHeart, IconShare } from "@tabler/icons-react";
-import type { Post } from "~/api";
+import { FavoriteButton } from "~/components/FavoriteButton";
+import type { Post } from "~/routes/posts._index/route";
 
 const useStyles = createStyles((theme) => ({
   card: {
@@ -38,21 +37,28 @@ const useStyles = createStyles((theme) => ({
 }));
 
 interface PostCardProps {
-  post: Post;
+  post: Post & {
+    isFavorite: boolean;
+  };
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const { classes, theme } = useStyles();
+  const { classes } = useStyles();
 
   return (
     <Card withBorder padding="lg" radius="md" className={classes.card}>
       <Card.Section mb="sm">
-        <Image src={post.image} alt="" height={180} />
+        {/* TODO: Replace random image with image from API */}
+        <Image
+          src="https://source.unsplash.com/random/?sport"
+          alt="Some random image"
+          height={180}
+        />
       </Card.Section>
 
       <div className={classes.tags}>
         {post.tags.map((tag) => (
-          <Badge key={tag}>{tag}</Badge>
+          <Badge key={tag.id_post_tag}>{tag.id_post_tag}</Badge>
         ))}
       </div>
 
@@ -61,9 +67,10 @@ export default function PostCard({ post }: PostCardProps) {
       </Text>
 
       <Group mt="lg">
-        <Avatar src={post.author.image} radius="sm" />
+        {/* TODO: Replace random avatar image with image from API */}
+        <Avatar src="https://source.unsplash.com/random/?avatar" radius="sm" />
         <div>
-          <Text fw={500}>{post.author.login}</Text>
+          <Text fw={500}>{post.user.username}</Text>
         </div>
       </Group>
 
@@ -72,22 +79,7 @@ export default function PostCard({ post }: PostCardProps) {
           <Text fz="xs" c="dimmed">
             {post.likes.length} people liked this
           </Text>
-          <Group spacing={0}>
-            <ActionIcon>
-              <IconHeart
-                size="1.2rem"
-                color={theme.colors.red[6]}
-                stroke={1.5}
-              />
-            </ActionIcon>
-            <ActionIcon>
-              <IconShare
-                size="1.2rem"
-                color={theme.colors.blue[6]}
-                stroke={1.5}
-              />
-            </ActionIcon>
-          </Group>
+          <FavoriteButton postId={post.id_post} isFavorite={post.isFavorite} />
         </Group>
       </Card.Section>
     </Card>
