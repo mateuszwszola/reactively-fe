@@ -2,13 +2,12 @@ import { Box, Button, createStyles, Title } from "@mantine/core";
 import { Link, useLoaderData } from "@remix-run/react";
 import PostCard from "~/components/PostCard";
 import type { LoaderArgs } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import type { ResponseBody } from "~/types/api";
-import { API_URL } from "~/types/api";
-import { getSession } from "~/sessions";
-import { postSchema } from "./schemas";
 import type { z } from "zod";
+import { fetchFromApi } from "~/client";
+import { requireUserSession } from "~/http";
+import { postSchema } from "~/schemas";
 
 const postsSchema = postSchema.array();
 
@@ -40,28 +39,24 @@ const useStyles = createStyles(() => ({
 }));
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
+  const { accessToken, userId } = await requireUserSession(request);
 
-  const accessToken = session.get("accessToken");
-  const userId = session.get("userId");
+  const fetcher = await fetchFromApi(request);
 
-  if (!accessToken) {
-    return redirect("/login");
-  }
-
-  const response = await fetch(API_URL + "/post", {
+  const response = await fetcher("/post", {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
-
-  const { data: posts } = (await response.json()) as ResponseBody<Posts>;
 
   if (!response.ok) {
     throw new Response(null, {
       status: response.status || 500,
     });
   }
+
+  const { data: posts } = (await response.json()) as ResponseBody<Posts>;
 
   const parsedPosts = postsSchema.parse(posts);
 

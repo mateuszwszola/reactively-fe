@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from "@remix-run/node";
+import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { createStyles } from "@mantine/core";
 import Header from "~/components/Header";
 import Footer from "~/components/Footer";
