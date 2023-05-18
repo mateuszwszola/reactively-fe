@@ -96,7 +96,7 @@ export default function PostPage() {
       </Button>
 
       <Box mt={32}>
-        <Anchor component={Link} to={`/account/${post.id_user}`} color="blue">
+        <Anchor component={Link} to={`/profile/${post.id_user}`} color="blue">
           <Flex align="center" gap={16}>
             <Avatar size={64} color="cyan" radius="xl">
               {post.user.username.slice(0, 2).toUpperCase()}
