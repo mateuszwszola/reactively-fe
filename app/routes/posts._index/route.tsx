@@ -1,13 +1,15 @@
-import { Box, Button, createStyles, Title } from "@mantine/core";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Box, Button, createStyles, Flex, Title } from "@mantine/core";
+import { Link, useActionData, useLoaderData } from "@remix-run/react";
 import PostCard from "~/components/PostCard";
-import type { LoaderArgs } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import type { ResponseBody } from "~/types/api";
+import { API_URL } from "~/types/api";
 import type { z } from "zod";
 import { fetchFromApi } from "~/client";
 import { requireUserSession } from "~/http";
 import { postSchema } from "~/schemas";
+import { TagFilters } from "~/components/TagFilters";
 
 const postsSchema = postSchema.array();
 
@@ -39,24 +41,17 @@ const useStyles = createStyles(() => ({
 }));
 
 export async function loader({ request }: LoaderArgs) {
-  const { accessToken, userId } = await requireUserSession(request);
+  const { userId } = await requireUserSession(request);
 
   const fetcher = await fetchFromApi(request);
 
-  const response = await fetcher("/post", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const [postResponse, tagsResponse, profileResponse] = await Promise.all([
+    fetcher("/post"),
+    fetcher("/tag"),
+    fetcher(`/user/${userId}/profile`),
+  ]);
 
-  if (!response.ok) {
-    throw new Response(null, {
-      status: response.status || 500,
-    });
-  }
-
-  const { data: posts } = (await response.json()) as ResponseBody<Posts>;
+  const { data: posts } = (await postResponse.json()) as ResponseBody<Posts>;
 
   const parsedPosts = postsSchema.parse(posts);
 
@@ -65,14 +60,60 @@ export async function loader({ request }: LoaderArgs) {
     isFavorite: post.likes.some((like) => like.user.id_user === userId),
   }));
 
+  const { data: tags } = (await tagsResponse.json()) as ResponseBody<
+    { id_tag: number; name: string }[]
+  >;
+
+  const profileData = await profileResponse.json();
+
+  const userTags = profileData.data[0].userTags as Array<{
+    tag: { id_tag: number; name: string };
+  }>;
+
   return json({
     posts: mappedPosts,
+    tags,
+    userTags,
   });
+}
+
+export async function action({ request }: ActionArgs) {
+  const { accessToken, userId } = await requireUserSession(request);
+
+  const formData = await request.formData();
+
+  const selectedTags = formData.getAll("tags");
+
+  if (!selectedTags || !selectedTags.every((tag) => typeof tag === "string")) {
+    return json({ error: "Please provide valid tags" }, { status: 422 });
+  }
+
+  const apiResponse = await fetch(API_URL + "/user/tags", {
+    method: "PUT",
+    body: JSON.stringify({
+      id_user: userId,
+      tags: selectedTags.map((tag) => Number(tag)),
+    }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!apiResponse.ok) {
+    throw new Error("Failed to update tags");
+  }
+
+  const data = (await apiResponse.json()) as ResponseBody<{
+    userTags: Array<{ id_tag: number; name: string }>;
+  }>;
+
+  return data;
 }
 
 export default function PostsPageIndex() {
   const { classes } = useStyles();
-  const { posts } = useLoaderData<typeof loader>();
+  const { posts, tags, userTags } = useLoaderData<typeof loader>();
 
   return (
     <div>
@@ -83,6 +124,13 @@ export default function PostsPageIndex() {
           Create post
         </Button>
       </Box>
+
+      <Flex direction="column" mt="lg" gap={8}>
+        <Title order={2}>Select tags</Title>
+        <Box mt="md">
+          <TagFilters tags={tags} userTags={userTags} />
+        </Box>
+      </Flex>
 
       <ul className={classes.list}>
         {posts.map((post) => (

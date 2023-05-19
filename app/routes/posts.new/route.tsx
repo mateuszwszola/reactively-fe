@@ -1,19 +1,12 @@
 import { Button, Paper, Textarea, TextInput, Title } from "@mantine/core";
-import { Form } from "@remix-run/react";
 import type { ActionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { getSession } from "~/sessions";
+import { Form } from "@remix-run/react";
+import { requireUserSession } from "~/http";
 import { API_URL } from "~/types/api";
 
 export async function action({ request }: ActionArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
-
-  const accessToken = session.get("accessToken");
-  const userId = session.get("userId");
-
-  if (!accessToken || !userId) {
-    return redirect("/posts");
-  }
+  const { accessToken, userId } = await requireUserSession(request);
 
   const formData = await request.formData();
 
