@@ -51,7 +51,6 @@ export default function UserProfilePage() {
         image="https://source.unsplash.com/random"
         avatar="https://source.unsplash.com/random/?avatar"
         name={profile.username}
-        job="Test"
         stats={[{ label: "Posts", value: String(profile.posts.length) }]}
       />
     </Box>

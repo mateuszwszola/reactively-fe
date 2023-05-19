@@ -8,6 +8,7 @@ import {
   rem,
   Text,
 } from "@mantine/core";
+import { Link } from "@remix-run/react";
 import { FavoriteButton } from "~/components/FavoriteButton";
 import type { Post } from "~/routes/posts._index/route";
 
@@ -57,8 +58,8 @@ export default function PostCard({ post }: PostCardProps) {
       </Card.Section>
 
       <div className={classes.tags}>
-        {post.tags.map((tag) => (
-          <Badge key={tag.id_post_tag}>{tag.id_post_tag}</Badge>
+        {post.tags.map(({ tag }) => (
+          <Badge key={tag.id_tag}>{tag.name}</Badge>
         ))}
       </div>
 
@@ -70,7 +71,9 @@ export default function PostCard({ post }: PostCardProps) {
         {/* TODO: Replace random avatar image with image from API */}
         <Avatar src="https://source.unsplash.com/random/?avatar" radius="sm" />
         <div>
-          <Text fw={500}>{post.user.username}</Text>
+          <Link to={`/profile/${post.user.id_user}`}>
+            <Text fw={500}>{post.user.username}</Text>
+          </Link>
         </div>
       </Group>
 

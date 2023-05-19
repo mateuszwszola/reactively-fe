@@ -16,7 +16,7 @@ export default function Index() {
 
   return (
     <div className={classes.layout}>
-      <Header />
+      <Header isAuthenticated />
       <main className={classes.main}>
         <Outlet />
       </main>
