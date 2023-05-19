@@ -23,7 +23,7 @@ const useStyles = createStyles(() => ({
     padding: 0,
     width: "100%",
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 512px))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
     gap: "1rem",
     listStyle: "none",
   },
