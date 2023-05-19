@@ -123,7 +123,7 @@ export default function PostsPageIndex() {
         </Button>
       </Box>
 
-      <Flex direction="column" mt="lg" gap={8}>
+      <Flex direction="column" mt={48} gap={8}>
         <Title order={2}>Select tags</Title>
         <Box mt="md">
           <TagFilters tags={tags} userTags={userTags} />
