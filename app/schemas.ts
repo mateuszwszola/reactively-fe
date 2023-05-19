@@ -32,8 +32,10 @@ export const postLikeSchema = z.object({
 });
 
 export const postTagSchema = z.object({
-  id_post_tag: z.number(),
-  id_post: z.number(),
+  tag: z.object({
+    id_tag: z.number(),
+    name: z.string(),
+  }),
 });
 
 export const postSchema = z.object({

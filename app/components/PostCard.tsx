@@ -57,8 +57,8 @@ export default function PostCard({ post }: PostCardProps) {
       </Card.Section>
 
       <div className={classes.tags}>
-        {post.tags.map((tag) => (
-          <Badge key={tag.id_post_tag}>{tag.id_post_tag}</Badge>
+        {post.tags.map(({ tag }) => (
+          <Badge key={tag.id_tag}>{tag.name}</Badge>
         ))}
       </div>
 

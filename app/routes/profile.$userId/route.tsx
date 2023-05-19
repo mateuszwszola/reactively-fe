@@ -44,8 +44,6 @@ export async function loader({ request, params }: LoaderArgs) {
 export default function UserProfilePage() {
   const { profile } = useLoaderData<typeof loader>();
 
-  console.log({ profile });
-
   return (
     <Box maw={512} mx="auto">
       {/*TODO: Update schema and types*/}

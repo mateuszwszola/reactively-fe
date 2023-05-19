@@ -1,5 +1,5 @@
-import { Box, Button, createStyles, Flex, Title } from "@mantine/core";
-import { Link, useActionData, useLoaderData } from "@remix-run/react";
+import { Box, Button, createStyles, Flex, Title, Text } from "@mantine/core";
+import { Link, useLoaderData } from "@remix-run/react";
 import PostCard from "~/components/PostCard";
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -46,16 +46,14 @@ export async function loader({ request }: LoaderArgs) {
   const fetcher = await fetchFromApi(request);
 
   const [postResponse, tagsResponse, profileResponse] = await Promise.all([
-    fetcher("/post"),
+    fetcher("/post/feed"),
     fetcher("/tag"),
     fetcher(`/user/${userId}/profile`),
   ]);
 
   const { data: posts } = (await postResponse.json()) as ResponseBody<Posts>;
 
-  const parsedPosts = postsSchema.parse(posts);
-
-  const mappedPosts = parsedPosts.map((post) => ({
+  const mappedPosts = posts.map((post) => ({
     ...post,
     isFavorite: post.likes.some((like) => like.user.id_user === userId),
   }));
@@ -131,6 +129,12 @@ export default function PostsPageIndex() {
           <TagFilters tags={tags} userTags={userTags} />
         </Box>
       </Flex>
+
+      {posts.length === 0 ? (
+        <Text mt={64} align="center">
+          No posts found
+        </Text>
+      ) : null}
 
       <ul className={classes.list}>
         {posts.map((post) => (

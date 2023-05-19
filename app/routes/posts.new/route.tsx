@@ -1,9 +1,35 @@
-import { Button, Paper, Textarea, TextInput, Title } from "@mantine/core";
-import type { ActionArgs } from "@remix-run/node";
+import {
+  Button,
+  Paper,
+  Textarea,
+  TextInput,
+  Title,
+  MultiSelect,
+} from "@mantine/core";
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { Form } from "@remix-run/react";
+import { Form, useLoaderData } from "@remix-run/react";
+import { fetchFromApi } from "~/client";
 import { requireUserSession } from "~/http";
+import type { ResponseBody } from "~/types/api";
 import { API_URL } from "~/types/api";
+
+export async function loader({ request }: LoaderArgs) {
+  await requireUserSession(request);
+
+  const fetcher = await fetchFromApi(request);
+
+  const tagsResponse = await fetcher("/tag");
+
+  const { data: tags } = (await tagsResponse.json()) as ResponseBody<
+    { id_tag: number; name: string }[]
+  >;
+
+  return json({
+    tags,
+  });
+}
 
 export async function action({ request }: ActionArgs) {
   const { accessToken, userId } = await requireUserSession(request);
@@ -12,6 +38,9 @@ export async function action({ request }: ActionArgs) {
 
   const title = formData.get("title");
   const content = formData.get("content");
+  const tags = formData.get("tags") || [];
+
+  const formattedTags = typeof tags === "string" ? tags.split(",") : [];
 
   const apiResponse = await fetch(API_URL + "/post", {
     method: "POST",
@@ -19,7 +48,7 @@ export async function action({ request }: ActionArgs) {
       id_user: userId,
       title,
       content,
-      tags: [],
+      tags: formattedTags.map((tag) => Number(tag)),
     }),
     headers: {
       "Content-Type": "application/json",
@@ -37,6 +66,8 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function PostPage() {
+  const { tags } = useLoaderData<typeof loader>();
+
   return (
     <div>
       <Title>New Post</Title>
@@ -49,7 +80,18 @@ export default function PostPage() {
         maw={720}
         mx="auto"
       >
+        <MultiSelect
+          data={tags.map((tag) => ({
+            value: String(tag.id_tag),
+            label: tag.name,
+          }))}
+          label="Select tags"
+          placeholder="Pick all that you like"
+          name="tags"
+        />
+
         <TextInput
+          mt={16}
           name="title"
           label="Post title"
           placeholder="Enter post title"
