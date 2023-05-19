@@ -2,10 +2,18 @@ import { Box, Button, createStyles, Title } from "@mantine/core";
 import { Link, useLoaderData } from "@remix-run/react";
 import PostCard from "~/components/PostCard";
 import type { LoaderArgs } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { API_URL } from "~/api";
-import { getSession } from "~/sessions";
+import type { ResponseBody } from "~/types/api";
+import type { z } from "zod";
+import { fetchFromApi } from "~/client";
+import { requireUserSession } from "~/http";
+import { postSchema } from "~/schemas";
+
+const postsSchema = postSchema.array();
+
+export type Post = z.infer<typeof postSchema>;
+
+export type Posts = z.infer<typeof postsSchema>;
 
 const useStyles = createStyles(() => ({
   list: {
@@ -13,7 +21,7 @@ const useStyles = createStyles(() => ({
     padding: 0,
     width: "100%",
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 512px))",
     gap: "1rem",
     listStyle: "none",
   },
@@ -31,43 +39,34 @@ const useStyles = createStyles(() => ({
 }));
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
+  const { accessToken, userId } = await requireUserSession(request);
 
-  const accessToken = session.get("accessToken");
+  const fetcher = await fetchFromApi(request);
 
-  if (!accessToken) {
-    return redirect("/login");
-  }
-
-  const postsResponse = await fetch(API_URL + "/post", {
+  const response = await fetcher("/post", {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
 
-  const { data } = await postsResponse.json();
+  if (!response.ok) {
+    throw new Response(null, {
+      status: response.status || 500,
+    });
+  }
 
-  // TODO: Some fields are hardcoded
-  const posts = data.map((post: any) => ({
-    id: post.id_post,
-    title: post.title,
-    content: post.content,
-    image:
-      "https://source.unsplash.com/random/?rest,recovery,training,performance",
-    tags: [],
-    comments: [],
-    likes: [],
-    author: {
-      id: post.user.id_user,
-      login: post.user.username,
-      image: "https://source.unsplash.com/random/?avatar",
-    },
-    createdAt: post.createdAt,
-    updatedAt: post.updatedAt,
+  const { data: posts } = (await response.json()) as ResponseBody<Posts>;
+
+  const parsedPosts = postsSchema.parse(posts);
+
+  const mappedPosts = parsedPosts.map((post) => ({
+    ...post,
+    isFavorite: post.likes.some((like) => like.user.id_user === userId),
   }));
 
   return json({
-    posts,
+    posts: mappedPosts,
   });
 }
 
@@ -86,9 +85,9 @@ export default function PostsPageIndex() {
       </Box>
 
       <ul className={classes.list}>
-        {posts.map((post: any) => (
-          <li key={post.id}>
-            <Link to={String(post.id)} className={classes.link}>
+        {posts.map((post) => (
+          <li key={post.id_post}>
+            <Link to={String(post.id_post)} className={classes.link}>
               <PostCard post={post} />
             </Link>
           </li>

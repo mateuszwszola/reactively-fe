@@ -9,36 +9,30 @@ import {
   Title,
 } from "@mantine/core";
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import type { ActionArgs, V2_MetaFunction } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import type { V2_MetaFunction, ActionArgs } from "@remix-run/node";
 import { useStyles } from "~/components/Auth";
 import { IconArrowLeft } from "@tabler/icons-react";
-import type { ResponseBody } from "~/api";
-import { API_URL } from "~/api";
+import { json, redirect } from "@remix-run/node";
+import type { ResponseBody } from "~/types/api";
+import { API_URL } from "~/types/api";
+import { commitSession, getSession } from "~/sessions";
+import { decodeToken } from "~/token.server";
 
 export const meta: V2_MetaFunction = () => {
   return [
     {
-      title: "Sign Up | Reactively",
+      title: "Log In | Reactively",
     },
   ];
 };
 
-export async function loader() {
-  // TODO: Redirect if user is authenticated
-
-  return json({
-    message: "Hello",
-  });
-}
-
 export async function action({ request }: ActionArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+
   const formData = await request.formData();
 
   const username = formData.get("username");
-  const email = formData.get("email");
   const password = formData.get("password");
-  const passwordConfirmation = formData.get("passwordConfirmation");
 
   const validationErrors: Record<string, string> = {};
 
@@ -46,30 +40,17 @@ export async function action({ request }: ActionArgs) {
     validationErrors.username = "Username is required";
   }
 
-  if (!email || typeof email !== "string") {
-    validationErrors.email = "Email is required";
-  }
-
   if (!password || typeof password !== "string") {
     validationErrors.password = "Password is required";
-  }
-
-  if (!passwordConfirmation || typeof passwordConfirmation !== "string") {
-    validationErrors.passwordConfirmation = "Password confirmation is required";
-  }
-
-  if (password !== passwordConfirmation) {
-    validationErrors.passwordConfirmation = "Passwords must match";
   }
 
   if (Object.keys(validationErrors).length > 0) {
     return json({ validationErrors, errors: null }, { status: 422 });
   }
 
-  const apiResponse = await fetch(API_URL + "/user", {
+  const apiResponse = await fetch(API_URL + "/auth/login", {
     method: "POST",
     body: JSON.stringify({
-      email,
       username,
       password,
     }),
@@ -78,8 +59,12 @@ export async function action({ request }: ActionArgs) {
     },
   });
 
+  const body = (await apiResponse.json()) as ResponseBody<
+    [{ access_token: string }]
+  >;
+
   if (!apiResponse.ok) {
-    const { errors, status } = (await apiResponse.json()) as ResponseBody;
+    const { errors, status } = body;
 
     const errorMessages = errors?.flatMap((error) => error.message) || [
       "Something went wrong",
@@ -94,10 +79,29 @@ export async function action({ request }: ActionArgs) {
     );
   }
 
-  return redirect("/login");
+  const accessToken = body.data?.[0]?.access_token;
+
+  // Decode accessToken
+  const accessTokenPayload = decodeToken(accessToken);
+
+  session.set("accessToken", accessToken);
+
+  if (
+    accessTokenPayload &&
+    typeof accessTokenPayload === "object" &&
+    "id_user" in accessTokenPayload
+  ) {
+    session.set("userId", accessTokenPayload.id_user);
+  }
+
+  return redirect("/", {
+    headers: {
+      "Set-Cookie": await commitSession(session),
+    },
+  });
 }
 
-export default function SignupPage() {
+export default function LoginPage() {
   const { classes } = useStyles();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -119,9 +123,8 @@ export default function SignupPage() {
           <IconArrowLeft />
           <Text>Homepage</Text>
         </Anchor>
-
         <Title order={2} className={classes.title} ta="center" mt="xl" mb={50}>
-          Sign up to get started with Reactively!
+          Welcome back to Reactively!
         </Title>
 
         {errors && (
@@ -141,14 +144,6 @@ export default function SignupPage() {
           size="md"
           error={actionData?.validationErrors?.username}
         />
-        <TextInput
-          name="email"
-          label="Email address"
-          placeholder="johnny@gmail.com"
-          mt="md"
-          size="md"
-          error={actionData?.validationErrors?.email}
-        />
         <PasswordInput
           name="password"
           label="Password"
@@ -157,14 +152,7 @@ export default function SignupPage() {
           size="md"
           error={actionData?.validationErrors?.password}
         />
-        <PasswordInput
-          name="passwordConfirmation"
-          label="Confirm password"
-          placeholder="Confirm password"
-          mt="md"
-          size="md"
-          error={actionData?.validationErrors?.passwordConfirmation}
-        />
+
         <Button
           type="submit"
           fullWidth
@@ -172,13 +160,13 @@ export default function SignupPage() {
           size="md"
           loading={isSubmitting}
         >
-          Sign Up
+          Login
         </Button>
 
         <Text ta="center" mt="md">
-          Already have an account?{" "}
-          <Anchor component={Link} to="/login" weight={600}>
-            Login
+          Don&apos;t have an account?{" "}
+          <Anchor component={Link} to="/signup" weight={600}>
+            Register
           </Anchor>
         </Text>
       </Paper>
