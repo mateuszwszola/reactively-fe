@@ -7,8 +7,6 @@ export async function fetchFromApi(request: Request) {
 
   const accessToken = session.get("accessToken");
 
-  console.log("accessToken", accessToken);
-
   const defaultHeaders: RequestInit["headers"] = accessToken
     ? {
         Authorization: `Bearer ${accessToken}`,
