@@ -1,15 +1,15 @@
-import { Box, Button, createStyles, Flex, Title, Text } from "@mantine/core";
-import { Link, useLoaderData } from "@remix-run/react";
+import {Box, Button, createStyles, Flex, Text, Title} from "@mantine/core";
+import {Link, useLoaderData} from "@remix-run/react";
 import PostCard from "~/components/PostCard";
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import type { ResponseBody } from "~/types/api";
-import { API_URL } from "~/types/api";
-import type { z } from "zod";
-import { fetchFromApi } from "~/client";
-import { requireUserSession } from "~/http";
-import { postSchema } from "~/schemas";
-import { TagFilters } from "~/components/TagFilters";
+import type {ActionArgs, LoaderArgs} from "@remix-run/node";
+import {json} from "@remix-run/node";
+import type {ResponseBody} from "~/types/api";
+import {API_URL} from "~/types/api";
+import type {z} from "zod";
+import {fetchFromApi} from "~/client";
+import {requireUserSession} from "~/http";
+import {postSchema} from "~/schemas";
+import {TagFilters} from "~/components/TagFilters";
 
 const postsSchema = postSchema.array();
 
@@ -51,12 +51,15 @@ export async function loader({ request }: LoaderArgs) {
     fetcher(`/user/${userId}/profile`),
   ]);
 
-  const { data: posts } = (await postResponse.json()) as ResponseBody<Posts | undefined>;
+  const { data: posts } = (await postResponse.json()) as ResponseBody<
+    Posts | undefined
+  >;
 
-  const mappedPosts = posts?.map((post) => ({
-    ...post,
-    isFavorite: post.likes.some((like) => like.user.id_user === userId),
-  })) || [];
+  const mappedPosts =
+    posts?.map((post) => ({
+      ...post,
+      isFavorite: post.likes.some((like) => like.user.id_user === userId),
+    })) || [];
 
   const { data: tags } = (await tagsResponse.json()) as ResponseBody<
     { id_tag: number; name: string }[]
@@ -64,9 +67,10 @@ export async function loader({ request }: LoaderArgs) {
 
   const profileData = await profileResponse.json();
 
-  const userTags = profileData?.data?.[0]?.userTags as Array<{
-    tag: { id_tag: number; name: string };
-  }> || [];
+  const userTags =
+    (profileData?.data?.[0]?.userTags as Array<{
+      tag: { id_tag: number; name: string };
+    }>) || [];
 
   return json({
     posts: mappedPosts,
@@ -102,11 +106,9 @@ export async function action({ request }: ActionArgs) {
     throw new Error("Failed to update tags");
   }
 
-  const data = (await apiResponse.json()) as ResponseBody<{
+  return (await apiResponse.json()) as ResponseBody<{
     userTags: Array<{ id_tag: number; name: string }>;
   }>;
-
-  return data;
 }
 
 export default function PostsPageIndex() {

@@ -17,6 +17,13 @@ import type { ResponseBody } from "~/types/api";
 import { API_URL } from "~/types/api";
 import { commitSession, getSession } from "~/sessions";
 import { decodeToken } from "~/token.server";
+import { z } from "zod";
+
+const AccessTokenSchema = z.object({
+  id_user: z.number(),
+  username: z.string(),
+  sub: z.number(),
+});
 
 export const meta: V2_MetaFunction = () => {
   return [
@@ -86,13 +93,9 @@ export async function action({ request }: ActionArgs) {
 
   session.set("accessToken", accessToken);
 
-  if (
-    accessTokenPayload &&
-    typeof accessTokenPayload === "object" &&
-    "id_user" in accessTokenPayload
-  ) {
-    session.set("userId", accessTokenPayload.id_user);
-  }
+  const validatedTokenPayload = AccessTokenSchema.parse(accessTokenPayload);
+
+  session.set("userId", validatedTokenPayload.id_user);
 
   return redirect("/", {
     headers: {
