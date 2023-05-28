@@ -22,6 +22,7 @@ export const commentSchema = z.object({
   content: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  user: userSchema,
 });
 
 export const postLikeSchema = z.object({

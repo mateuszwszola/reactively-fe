@@ -74,8 +74,6 @@ export async function action({ request, params }: ActionArgs) {
 
     const data = await response.json();
 
-    console.log("response", response);
-
     if (!response.ok) {
       throw new Response(data, {
         status: response.status || 400,
@@ -161,7 +159,6 @@ export default function PostPage() {
         </Title>
 
         <Flex direction="column" gap={32}>
-          {/* TODO: Improve types */}
           {post.comments.map((comment) => (
             <Comment
               key={comment.id_comment}

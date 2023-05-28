@@ -12,7 +12,6 @@ interface CommentSimpleProps {
   body: string;
   author: {
     name: string;
-    image: string;
   };
 }
 
