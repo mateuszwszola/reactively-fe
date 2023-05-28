@@ -51,12 +51,12 @@ export async function loader({ request }: LoaderArgs) {
     fetcher(`/user/${userId}/profile`),
   ]);
 
-  const { data: posts } = (await postResponse.json()) as ResponseBody<Posts>;
+  const { data: posts } = (await postResponse.json()) as ResponseBody<Posts | undefined>;
 
-  const mappedPosts = posts.map((post) => ({
+  const mappedPosts = posts?.map((post) => ({
     ...post,
     isFavorite: post.likes.some((like) => like.user.id_user === userId),
-  }));
+  })) || [];
 
   const { data: tags } = (await tagsResponse.json()) as ResponseBody<
     { id_tag: number; name: string }[]
@@ -64,9 +64,9 @@ export async function loader({ request }: LoaderArgs) {
 
   const profileData = await profileResponse.json();
 
-  const userTags = profileData.data[0].userTags as Array<{
+  const userTags = profileData?.data?.[0]?.userTags as Array<{
     tag: { id_tag: number; name: string };
-  }>;
+  }> || [];
 
   return json({
     posts: mappedPosts,
